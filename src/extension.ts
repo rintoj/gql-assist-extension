@@ -1,17 +1,17 @@
 import * as vscode from 'vscode'
-import { processFile } from './process-file'
+import { processDocument } from './process-document'
 
 export function activate(context: vscode.ExtensionContext) {
   const disposable = vscode.commands.registerCommand('gql-assist.generate', () => {
     const document = vscode.window.activeTextEditor?.document
     if (document) {
-      processFile(document.fileName, document.getText().toString())
+      processDocument(document)
     }
     // vscode.window.showInformationMessage('Hello from GraphQL Assist!')
   })
 
   vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-    processFile(document.fileName, document.getText().toString())
+    processDocument(document)
   })
 
   context.subscriptions.push(disposable)

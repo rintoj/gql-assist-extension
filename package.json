@@ -45,6 +45,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "gql-assist": "^1.0.3"
+    "gql-assist": "^1.1.0",
+    "prettier": "^3.3.2"
   }
 }

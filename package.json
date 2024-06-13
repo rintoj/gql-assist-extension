@@ -6,6 +6,7 @@
   "engines": {
     "vscode": "^1.90.0"
   },
+  "publisher": "rintoj",
   "categories": [
     "Other"
   ],

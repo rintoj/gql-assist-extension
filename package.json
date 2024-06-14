@@ -22,7 +22,7 @@
     "commands": [
       {
         "command": "gql-assist.generate",
-        "category": "GQL Assist",
+        "category": "GraphQL Assist",
         "title": "Generate"
       }
     ],

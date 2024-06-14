@@ -7,8 +7,12 @@
     "vscode": "^1.90.0"
   },
   "publisher": "rintoj",
+  "icon": "icon.png",
   "categories": [
-    "Other"
+    "AI",
+    "Language Packs",
+    "Formatters",
+    "Linters"
   ],
   "activationEvents": [
     "onStartupFinished"

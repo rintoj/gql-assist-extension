@@ -1,4 +1,6 @@
-import { EditActionType, Position, Range, calculateEditByLine } from 'gql-assist'
+import { EditActionType } from 'gql-assist/dist/diff/actions'
+import { Position, Range } from 'gql-assist/dist/diff/token'
+import { calculateEditByLine } from 'gql-assist/dist/diff/calculate-edit-by-line'
 import { generate } from 'gql-assist/dist/generate/generate-command'
 import { parseTSFile } from 'gql-assist/dist/ts/parse-ts'
 import { prettify } from 'gql-assist/dist/ts/prettify'

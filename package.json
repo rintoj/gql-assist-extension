@@ -10,7 +10,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -46,7 +48,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "gql-assist": "^1.1.0",
+    "gql-assist": "^1.2.0",
     "prettier": "^3.3.2"
   }
 }

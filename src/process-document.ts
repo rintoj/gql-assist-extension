@@ -1,13 +1,14 @@
 import { EditActionType } from 'gql-assist/dist/diff/actions'
-import { Position, Range } from 'gql-assist/dist/diff/token'
 import { calculateEditByLine } from 'gql-assist/dist/diff/calculate-edit-by-line'
+import { Position, Range } from 'gql-assist/dist/diff/token'
 import { generate } from 'gql-assist/dist/generate/generate-command'
-import { parseTSFile } from 'gql-assist/dist/ts/parse-ts'
-import { prettify } from 'gql-assist/dist/ts/prettify'
 import { loadSchema } from 'gql-assist/dist/generator/hook/graphql-util'
 import { generateHook } from 'gql-assist/dist/generator/hook/hook-generator'
+import { parseTSFile } from 'gql-assist/dist/ts/parse-ts'
+import { prettify } from 'gql-assist/dist/ts/prettify'
 import { printTS } from 'gql-assist/dist/ts/print-ts'
 import * as vscode from 'vscode'
+import { config } from './config'
 
 const cache: any = {}
 
@@ -89,14 +90,17 @@ async function saveChanges(document: vscode.TextDocument, code: string) {
 export async function processDocument(document: vscode.TextDocument) {
   const { fileName } = document
   const content = document.getText().toString()
-  if (fileName.endsWith('.gql.ts')) {
+  if (
+    config.reactHook.enable &&
+    !!config.reactHook.fileExtensions.find(e => fileName.endsWith(e))
+  ) {
     searchAndLoadSchema()
     const sourceFile = parseTSFile(fileName, content)
-    const code = await prettify(printTS(await generateHook(sourceFile, cache.schema)))
+    const code = await prettify(printTS(await generateHook(sourceFile, cache.schema, config)))
     await saveChanges(document, code)
   } else {
     const sourceFile = parseTSFile(fileName, content)
-    const code = await prettify(printTS(await generate(sourceFile)))
+    const code = await prettify(printTS(await generate(sourceFile, config)))
     await saveChanges(document, code)
   }
 }

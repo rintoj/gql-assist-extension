@@ -18,7 +18,208 @@
     "commands": [
       {
         "command": "gql-assist.generate",
-        "title": "GQL Assist: Generate"
+        "category": "GQL Assist",
+        "title": "Generate"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "Behaviour",
+        "properties": {
+          "gqlAssist.behaviour.nullableByDefault": {
+            "type": "boolean",
+            "default": true,
+            "description": "Treat every property without '!' as nullable",
+            "order": 1
+          },
+          "gqlAssist.behaviour.serverLibrary": {
+            "type": "string",
+            "default": "@nestjs/graphql",
+            "enum": [
+              "@nestjs/graphql",
+              "type-graphql"
+            ],
+            "description": "Server library to use",
+            "order": 1
+          },
+          "gqlAssist.behaviour.defaultNumberType": {
+            "type": "string",
+            "default": "Int",
+            "enum": [
+              "Int",
+              "Float"
+            ],
+            "description": "How to treat every numeric property by default",
+            "order": 1
+          }
+        }
+      },
+      {
+        "title": "Model Generation",
+        "properties": {
+          "gqlAssist.model.enable": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "On Save, automatically convert TypeScript classes to NestJS GraphQL Object Types.",
+            "description": "Enable model generation.",
+            "order": 1
+          },
+          "gqlAssist.model.fileExtensions": {
+            "type": "array",
+            "default": [
+              ".model.ts"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "markdownDescription": "For the extension to process models on save, they should be placed in a file with the extension as per the file extension configuration.",
+            "description": "Model file extensions.",
+            "order": 2
+          }
+        }
+      },
+      {
+        "title": "Resolver Generation",
+        "properties": {
+          "gqlAssist.resolver.enable": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "On Save, automatically transform resolver methods to GraphQL resolvers with appropriate decorators.",
+            "description": "Enable resolver generation.",
+            "order": 1
+          },
+          "gqlAssist.resolver.fileExtensions": {
+            "type": "array",
+            "default": [
+              ".resolver.ts"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "markdownDescription": "For the extension to process resolvers on save, they should be placed in a file with the extension as per the file extension configuration.",
+            "description": "Resolver file extensions.",
+            "order": 2
+          }
+        }
+      },
+      {
+        "title": "Input Generation",
+        "properties": {
+          "gqlAssist.input.enable": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "On Save, automatically generate input types for GraphQL mutations.",
+            "description": "Enable input generation.",
+            "order": 1
+          },
+          "gqlAssist.input.fileExtensions": {
+            "type": "array",
+            "default": [
+              ".input.ts"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "markdownDescription": "For the extension to process inputs on save, they should be placed in a file with the extension as per the file extension configuration.",
+            "description": "Input file extensions.",
+            "order": 2
+          }
+        }
+      },
+      {
+        "title": "Response Generation",
+        "properties": {
+          "gqlAssist.response.enable": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "On Save, automatically generate response types for GraphQL queries and mutations.",
+            "description": "Enable response generation.",
+            "order": 1
+          },
+          "gqlAssist.response.fileExtensions": {
+            "type": "array",
+            "default": [
+              ".response.ts"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "markdownDescription": "For the extension to process responses on save, they should be placed in a file with the extension as per the file extension configuration.",
+            "description": "Response file extensions.",
+            "order": 2
+          }
+        }
+      },
+      {
+        "title": "Enum Generation",
+        "properties": {
+          "gqlAssist.enum.enable": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "On Save, automatically convert TypeScript enums to GraphQL enums and registers them.",
+            "description": "Enable enum generation.",
+            "order": 1
+          },
+          "gqlAssist.enum.fileExtensions": {
+            "type": "array",
+            "default": [
+              ".enum.ts",
+              ".model.ts",
+              ".input.ts",
+              ".response.ts"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "markdownDescription": "For the extension to process enums on save, they should be placed in a file with the extension as per the file extension configuration.",
+            "description": "Enum file extensions.",
+            "order": 2
+          }
+        }
+      },
+      {
+        "title": "React Hook Generation",
+        "properties": {
+          "gqlAssist.reactHook.enable": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "On Save, automatically generate React hooks for performing GraphQL queries and mutations.",
+            "description": "Enable React hook generation.",
+            "order": 1
+          },
+          "gqlAssist.reactHook.library": {
+            "type": "string",
+            "default": "@apollo/client",
+            "markdownDescription": "GraphQL library to use.",
+            "description": "GraphQL library.",
+            "order": 2
+          },
+          "gqlAssist.reactHook.schema": {
+            "type": "array",
+            "default": [
+              "./schema.gql",
+              "./schema.graphql"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "markdownDescription": "Paths to GraphQL schema files.",
+            "description": "GraphQL schema paths.",
+            "order": 3
+          },
+          "gqlAssist.reactHook.fileExtensions": {
+            "type": "array",
+            "default": [
+              ".gql.ts"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "markdownDescription": "For the extension to process React hooks on save, they should be placed in a file with the extension as per the file extension configuration.",
+            "description": "React hook file extensions.",
+            "order": 4
+          }
+        }
       }
     ]
   },
@@ -48,7 +249,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "gql-assist": "^1.2.0",
+    "gql-assist": "^1.2.1",
     "prettier": "^3.3.2"
   }
 }

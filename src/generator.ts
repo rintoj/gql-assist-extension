@@ -11,7 +11,6 @@ import {
   isModel,
   isResolver,
   isResponse,
-  parseTSFile,
   prettify,
   printTS,
 } from 'gql-assist'
@@ -19,6 +18,7 @@ import * as vscode from 'vscode'
 import { cache } from './common/cache'
 import { config } from './config'
 import { searchAndLoadSchema } from './gql/load-schema'
+import { documentToSourceFile } from './util/document-to-sourceFile'
 
 function toVSCodePosition(position: Position): vscode.Position {
   return new vscode.Position(position.line, position.character)
@@ -69,9 +69,7 @@ async function saveChanges(document: vscode.TextDocument, code: string) {
 }
 
 export async function processDocument(document: vscode.TextDocument) {
-  const { fileName } = document
-  const content = document.getText().toString()
-  const sourceFile = parseTSFile(fileName, content)
+  const sourceFile = documentToSourceFile(document)
   if (isHook(sourceFile, config)) {
     searchAndLoadSchema()
     if (!cache.schema) {

@@ -40,11 +40,17 @@
       {
         "title": "Behaviour",
         "properties": {
+          "gqlAssist.behaviour.runOnSave": {
+            "type": "boolean",
+            "default": true,
+            "description": "Run GraphQL assist on save",
+            "order": 1
+          },
           "gqlAssist.behaviour.nullableByDefault": {
             "type": "boolean",
             "default": true,
             "description": "Treat every property without '!' as nullable",
-            "order": 1
+            "order": 2
           },
           "gqlAssist.behaviour.serverLibrary": {
             "type": "string",
@@ -54,7 +60,7 @@
               "type-graphql"
             ],
             "description": "Server library to use",
-            "order": 1
+            "order": 3
           },
           "gqlAssist.behaviour.defaultNumberType": {
             "type": "string",
@@ -64,7 +70,7 @@
               "Float"
             ],
             "description": "How to treat every numeric property by default",
-            "order": 1
+            "order": 4
           }
         }
       },

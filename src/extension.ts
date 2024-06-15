@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
-import { handleConfigurationChange } from './config'
-import { processDocument } from './process-document'
+import { config, handleConfigurationChange } from './config'
+import { processDocument } from './generator'
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(handleConfigurationChange))
@@ -17,7 +17,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-      processDocument(document)
+      if (config.runOnSave) {
+        processDocument(document)
+      }
     }),
   )
 }

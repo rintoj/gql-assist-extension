@@ -2,12 +2,15 @@ import { GQLAssistConfig, NumericType, ServerLibrary } from 'gql-assist/dist/con
 import * as vscode from 'vscode'
 
 // Define configuration interface
+export interface GQLAssistExtensionConfig extends GQLAssistConfig {
+  runOnSave: boolean
+}
 
 // Read configuration
-export function readGqlAssistConfiguration(): GQLAssistConfig {
+export function readGqlAssistConfiguration(): GQLAssistExtensionConfig {
   const config = vscode.workspace.getConfiguration('gqlAssist')
-
   return {
+    runOnSave: config.get<boolean>('behaviour.runOnSave', true),
     behaviour: {
       nullableByDefault: config.get<boolean>('behaviour.nullableByDefault', true),
       serverLibrary: config.get<ServerLibrary>('behaviour.serverLibrary', '@nestjs/graphql'),
@@ -47,7 +50,7 @@ export function readGqlAssistConfiguration(): GQLAssistConfig {
   }
 }
 
-export const config: GQLAssistConfig = readGqlAssistConfiguration()
+export const config: GQLAssistExtensionConfig = readGqlAssistConfiguration()
 
 function keysOf<T extends Record<string, any>>(object: T): (keyof T)[] {
   return Object.keys(object)

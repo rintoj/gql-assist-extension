@@ -30,6 +30,12 @@
         "title": "Generate"
       }
     ],
+    "completionProvider": {
+      "resolveProvider": "true",
+      "triggerCharacters": [
+        ""
+      ]
+    },
     "configuration": [
       {
         "title": "Behaviour",
@@ -205,8 +211,8 @@
           "gqlAssist.reactHook.schema": {
             "type": "array",
             "default": [
-              "./schema.gql",
-              "./schema.graphql"
+              "schema.gql",
+              "schema.graphql"
             ],
             "items": {
               "type": "string"
@@ -257,7 +263,8 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "gql-assist": "^1.2.1",
-    "prettier": "^3.3.2"
+    "gql-assist": "^1.2.5",
+    "prettier": "^3.3.2",
+    "tsds-tools": "^1.2.1"
   }
 }

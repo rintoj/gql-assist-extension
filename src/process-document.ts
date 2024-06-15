@@ -1,12 +1,23 @@
-import { EditActionType } from 'gql-assist/dist/diff/actions'
-import { calculateEditByLine } from 'gql-assist/dist/diff/calculate-edit-by-line'
-import { Position, Range } from 'gql-assist/dist/diff/token'
-import { generate } from 'gql-assist/dist/generate/generate-command'
-import { loadSchema } from 'gql-assist/dist/generator/hook/graphql-util'
-import { generateHook } from 'gql-assist/dist/generator/hook/hook-generator'
-import { parseTSFile } from 'gql-assist/dist/ts/parse-ts'
-import { prettify } from 'gql-assist/dist/ts/prettify'
-import { printTS } from 'gql-assist/dist/ts/print-ts'
+import {
+  EditActionType,
+  Position,
+  Range,
+  calculateEditByLine,
+  generate,
+  generateHook,
+  isEnum,
+  isHook,
+  isInput,
+  isModel,
+  isResolver,
+  isResponse,
+  loadSchema,
+  parseTSFile,
+  prettify,
+  printTS,
+  resolveSchemaFile,
+} from 'gql-assist'
+import { toNonNullArray } from 'tsds-tools'
 import * as vscode from 'vscode'
 import { config } from './config'
 
@@ -20,31 +31,18 @@ function toVSCodeRange(range: Range): vscode.Range {
   return new vscode.Range(toVSCodePosition(range.start), toVSCodePosition(range.end))
 }
 
-function loadSchemaIfExists(path: string) {
-  try {
-    cache.schema = loadSchema(path)
-    console.info(`Loaded schema from ${path}`)
-    return true
-  } catch (e) {
-    console.warn(`Schema not found at ${path}`)
-    return false
-  }
-}
-
 function searchAndLoadSchema() {
   const currentWorkspaceFolder = vscode.window.activeTextEditor?.document.uri
     ? vscode.workspace.getWorkspaceFolder(vscode.window.activeTextEditor?.document?.uri)
     : null
-  if (
-    currentWorkspaceFolder
-      ? loadSchemaIfExists(`${currentWorkspaceFolder.uri.fsPath}/schema.gql`)
-      : false
-  ) {
-    return true
+  const folders = toNonNullArray(
+    Array.from(new Set([currentWorkspaceFolder, vscode.workspace.workspaceFolders].flat())),
+  ).map(folder => folder.uri.fsPath)
+  const schemaFile = resolveSchemaFile(undefined, folders, config)
+  if (!schemaFile) {
+    throw new Error(`No schema file found in the folds: ${folders.join(',')}`)
   }
-  return !!vscode.workspace.workspaceFolders
-    ?.map(folder => folder.uri.path + '/schema.gql')
-    .find(loadSchemaIfExists)
+  cache.schema = loadSchema(schemaFile)
 }
 
 async function saveChanges(document: vscode.TextDocument, code: string) {
@@ -90,16 +88,18 @@ async function saveChanges(document: vscode.TextDocument, code: string) {
 export async function processDocument(document: vscode.TextDocument) {
   const { fileName } = document
   const content = document.getText().toString()
-  if (
-    config.reactHook.enable &&
-    !!config.reactHook.fileExtensions.find(e => fileName.endsWith(e))
-  ) {
+  const sourceFile = parseTSFile(fileName, content)
+  if (isHook(sourceFile, config)) {
     searchAndLoadSchema()
-    const sourceFile = parseTSFile(fileName, content)
     const code = await prettify(printTS(await generateHook(sourceFile, cache.schema, config)))
     await saveChanges(document, code)
-  } else {
-    const sourceFile = parseTSFile(fileName, content)
+  } else if (
+    isModel(sourceFile, config) ||
+    isResolver(sourceFile, config) ||
+    isInput(sourceFile, config) ||
+    isResponse(sourceFile, config) ||
+    isEnum(sourceFile, config)
+  ) {
     const code = await prettify(printTS(await generate(sourceFile, config)))
     await saveChanges(document, code)
   }

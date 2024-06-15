@@ -173,14 +173,14 @@ export enum UserStatus {
 registerEnumType(UserStatus, { name: 'UserStatus' })
 ```
 
-## React Hook
+### React Hook
 
 GraphQL Assist can also help you with writing queries for graphql client by converting GraphQL
 queries into TypeScript code compatible with `@apollo/client`. With GraphQL Assist, writing GraphQL
 queries for Apollo Client becomes easier and less error-prone, allowing you to focus more on
 building your application.
 
-### Example
+#### Example
 
 Given the following GraphQL query:
 

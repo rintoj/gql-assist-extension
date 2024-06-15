@@ -11,17 +11,14 @@ import {
   isModel,
   isResolver,
   isResponse,
-  loadSchema,
   parseTSFile,
   prettify,
   printTS,
-  resolveSchemaFile,
 } from 'gql-assist'
-import { toNonNullArray } from 'tsds-tools'
 import * as vscode from 'vscode'
+import { cache } from './common/cache'
 import { config } from './config'
-
-const cache: any = {}
+import { searchAndLoadSchema } from './gql/load-schema'
 
 function toVSCodePosition(position: Position): vscode.Position {
   return new vscode.Position(position.line, position.character)
@@ -29,20 +26,6 @@ function toVSCodePosition(position: Position): vscode.Position {
 
 function toVSCodeRange(range: Range): vscode.Range {
   return new vscode.Range(toVSCodePosition(range.start), toVSCodePosition(range.end))
-}
-
-function searchAndLoadSchema() {
-  const currentWorkspaceFolder = vscode.window.activeTextEditor?.document.uri
-    ? vscode.workspace.getWorkspaceFolder(vscode.window.activeTextEditor?.document?.uri)
-    : null
-  const folders = toNonNullArray(
-    Array.from(new Set([currentWorkspaceFolder, vscode.workspace.workspaceFolders].flat())),
-  ).map(folder => folder.uri.fsPath)
-  const schemaFile = resolveSchemaFile(undefined, folders, config)
-  if (!schemaFile) {
-    throw new Error(`No schema file found in the folds: ${folders.join(',')}`)
-  }
-  cache.schema = loadSchema(schemaFile)
 }
 
 async function saveChanges(document: vscode.TextDocument, code: string) {
@@ -91,6 +74,11 @@ export async function processDocument(document: vscode.TextDocument) {
   const sourceFile = parseTSFile(fileName, content)
   if (isHook(sourceFile, config)) {
     searchAndLoadSchema()
+    if (!cache.schema) {
+      throw new Error(
+        'Failed to process the hook due to an issue with loading the required schema. Please ensure that the schema configuration is correct and accessible.',
+      )
+    }
     const code = await prettify(printTS(await generateHook(sourceFile, cache.schema, config)))
     await saveChanges(document, code)
   } else if (

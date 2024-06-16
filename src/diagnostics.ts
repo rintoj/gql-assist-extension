@@ -1,5 +1,4 @@
-import { diagnoseReactHook } from 'gql-assist'
-import path from 'path'
+import { diagnoseReactHook, isHook } from 'gql-assist'
 import * as vscode from 'vscode'
 import { cache } from './common/cache'
 import { config } from './config'
@@ -11,15 +10,18 @@ export async function updateDiagnostics(
   document: vscode.TextDocument,
   collection: vscode.DiagnosticCollection,
 ): Promise<void> {
-  if (!document || path.basename(document.uri.fsPath) !== 'use-me.gql.ts') {
+  if (!document || !document.uri.fsPath.endsWith('.ts')) {
     return collection.clear()
+  }
+  const sourceFile = documentToSourceFile(document)
+  if (!isHook(sourceFile, config)) {
+    return
   }
   searchAndLoadSchema()
   if (!cache.schema) {
     throw new Error('No schema found so can not generate diagnostics')
   }
-  const sourceFile = documentToSourceFile(document)
   const issues = diagnoseReactHook(sourceFile, cache.schema, config).map(toDiagnostic)
-  console.log({ issues })
+  console.log(issues)
   collection.set(document.uri, issues)
 }

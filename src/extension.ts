@@ -1,4 +1,5 @@
 import * as vscode from 'vscode'
+import { provideCompletionItems, resolveCompletionItem } from './autocomplete'
 import { config, handleConfigurationChange } from './config'
 import { updateDiagnostics } from './diagnostics'
 import { processDocument } from './generator'
@@ -42,7 +43,17 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }),
   )
-}
 
+  context.subscriptions.push(
+    vscode.languages.registerCompletionItemProvider(
+      'typescript',
+      { provideCompletionItems },
+      '{',
+      '\n',
+      ' ',
+    ),
+  )
+}
 // This method is called when your extension is deactivated
+
 export function deactivate() {}

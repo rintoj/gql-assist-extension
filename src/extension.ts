@@ -10,10 +10,11 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(handleConfigurationChange))
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('gql-assist.generate', () => {
+    vscode.commands.registerCommand('gql-assist.generate', async () => {
       const document = vscode.window.activeTextEditor?.document
       if (document) {
-        processDocument(document)
+        await processDocument(document)
+        updateDiagnostics(document, collection)
       }
       // vscode.window.showInformationMessage('Hello from GraphQL Assist!')
     }),
@@ -37,9 +38,10 @@ export function activate(context: vscode.ExtensionContext) {
   )
 
   context.subscriptions.push(
-    vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+    vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
       if (config.runOnSave) {
-        processDocument(document)
+        await processDocument(document)
+        updateDiagnostics(document, collection)
       }
     }),
   )

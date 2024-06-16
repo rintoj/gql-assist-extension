@@ -11,7 +11,7 @@ export async function updateDiagnostics(
   collection: vscode.DiagnosticCollection,
 ): Promise<void> {
   if (!document || !document.uri.fsPath.endsWith('.ts')) {
-    return collection.clear()
+    return
   }
   const sourceFile = documentToSourceFile(document)
   if (!isHook(sourceFile, config)) {

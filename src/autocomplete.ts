@@ -3,6 +3,7 @@ import * as vscode from 'vscode'
 import { cache } from './common/cache'
 import { searchAndLoadSchema } from './gql/load-schema'
 import { documentToSourceFile } from './util/document-to-sourceFile'
+import { toNonNullArray } from 'tsds-tools'
 
 export function provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
   if (!document || !document.uri.fsPath.endsWith('.ts')) {
@@ -26,21 +27,26 @@ export function provideCompletionItems(document: vscode.TextDocument, position: 
   if (!selectedType) {
     return []
   }
-  return Object.keys(selectedType ?? {}).map(fieldName => {
-    const field = (selectedType as any)?.[fieldName]
-    const fieldType = cache.schemaDef[field.type]
-    const selectedField = fieldType
-      ? Object.keys(fieldType).find(i => i === 'id') ?? Object.keys(field)[0]
-      : undefined
+  return toNonNullArray(
+    Object.keys(selectedType ?? {}).map(fieldName => {
+      const field = (selectedType as any)?.[fieldName]
+      if (!field) {
+        return
+      }
+      const fieldType = cache.schemaDef[field.type]
+      const selectedField = fieldType
+        ? Object.keys(fieldType).find(i => i === 'id') ?? Object.keys(fieldType)[0]
+        : undefined
 
-    const completionItem = new vscode.CompletionItem(
-      fieldName,
-      !selectedField ? vscode.CompletionItemKind.Value : vscode.CompletionItemKind.Field,
-    )
-    completionItem.insertText = selectedField ? `${fieldName} { ${selectedField} }` : fieldName
-    completionItem.detail = field.type
-    return completionItem
-  })
+      const completionItem = new vscode.CompletionItem(
+        fieldName,
+        !selectedField ? vscode.CompletionItemKind.Value : vscode.CompletionItemKind.Field,
+      )
+      completionItem.insertText = selectedField ? `${fieldName} { ${selectedField} }` : fieldName
+      completionItem.detail = field.type
+      return completionItem
+    }),
+  )
 }
 
 export function resolveCompletionItem(

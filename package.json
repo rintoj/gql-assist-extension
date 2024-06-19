@@ -2,12 +2,13 @@
   "name": "gql-assist",
   "displayName": "GraphQL Assist",
   "description": "Generates React hooks for clients, along with resolvers, models, and enums for NestJS server projects",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "engines": {
     "vscode": "^1.90.0"
   },
   "publisher": "rintoj",
   "icon": "icon.png",
+  "preview": true,
   "categories": [
     "AI",
     "Language Packs",
@@ -23,6 +24,16 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "snippets": [
+      {
+        "language": "typescript",
+        "path": "./snippets.json"
+      },
+      {
+        "language": "typescriptreact",
+        "path": "./snippets.json"
+      }
+    ],
     "commands": [
       {
         "command": "gql-assist.generate",

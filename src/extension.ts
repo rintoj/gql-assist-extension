@@ -1,10 +1,11 @@
 import * as vscode from 'vscode'
-import { provideCompletionItems, resolveCompletionItem } from './autocomplete'
+import { provideCompletionItems } from './autocomplete'
 import { config, handleConfigurationChange } from './config'
 import { updateDiagnostics } from './diagnostics'
 import { processDocument } from './generator'
 
 let lastContent = ''
+let lastContentOnSave = ''
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(handleConfigurationChange))
@@ -40,6 +41,11 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
       if (config.runOnSave) {
+        const text = document.getText()
+        if (lastContentOnSave === text) {
+          return
+        }
+        lastContentOnSave = text
         await processDocument(document)
         updateDiagnostics(document, collection)
       }
@@ -50,9 +56,8 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerCompletionItemProvider(
       'typescript',
       { provideCompletionItems },
-      '{',
       '\n',
-      ' ',
+      '*',
     ),
   )
 }

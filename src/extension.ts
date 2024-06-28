@@ -57,7 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
       'typescript',
       { provideCompletionItems },
       '\n',
-      '*',
+      ' ',
     ),
   )
 }

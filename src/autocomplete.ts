@@ -17,45 +17,32 @@ export function provideCompletionItems(document: vscode.TextDocument, position: 
   if (!cache.schema) {
     throw new Error('No schema found so can not generate diagnostics')
   }
-  const selectedType = autoCompleteHook(
+  const fields = autoCompleteHook(
     sourceFile,
     new Position(position.line, position.character),
     cache.schema,
     config,
   )
-  console.log({ selectedType, position })
-  if (!selectedType) {
+  console.log(fields)
+  if (!fields?.length) {
     return []
   }
   return toNonNullArray(
-    Object.keys(selectedType ?? {}).map(fieldName => {
-      const field = (selectedType as any)?.[fieldName]
-      if (!field) {
-        return
-      }
-      const fieldType = cache.schemaDef[field.type]
-      const selectedField = fieldType
-        ? Object.keys(fieldType).find(i => i === 'id') ?? Object.keys(fieldType)[0]
-        : undefined
-
+    fields.map(field => {
       const completionItem = new vscode.CompletionItem(
-        fieldName,
-        !selectedField ? vscode.CompletionItemKind.Value : vscode.CompletionItemKind.Field,
+        field.name,
+        field.isSelectable ? vscode.CompletionItemKind.Interface : vscode.CompletionItemKind.Field,
       )
-      completionItem.insertText = selectedField ? `${fieldName} { ${selectedField} }` : fieldName
+      completionItem.preselect = true
+      completionItem.insertText = new vscode.SnippetString(field.insertText)
       completionItem.detail = field.type
+      completionItem.commitCharacters = [' ']
+      completionItem.documentation = new vscode.MarkdownString(field.documentation)
+      completionItem.command = {
+        command: 'editor.action.triggerSuggest',
+        title: 'Re-trigger completions...',
+      }
       return completionItem
     }),
   )
-}
-
-export function resolveCompletionItem(
-  item: vscode.CompletionItem,
-  token: vscode.CancellationToken,
-) {
-  const parentType = item.detail ? cache.schemaDef[item.detail] : undefined
-  if (!parentType) {
-    return item
-  }
-  return item
 }

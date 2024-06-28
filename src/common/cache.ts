@@ -4,7 +4,7 @@ import { ById } from 'tsds-tools'
 
 export class Cache {
   private readonly storage: {
-    schema?: gql.DocumentNode
+    schema?: gql.GraphQLSchema
     schemaDef: ById<ById<FieldDef>>
   } = {
     schemaDef: {},
@@ -14,13 +14,8 @@ export class Cache {
     return this.storage.schema
   }
 
-  get schemaDef() {
-    return this.storage.schemaDef
-  }
-
-  setSchema(schema: gql.DocumentNode) {
+  setSchema(schema: gql.GraphQLSchema) {
     this.storage.schema = schema
-    this.storage.schemaDef = extractTypeDefinitions(schema)
     return schema
   }
 }

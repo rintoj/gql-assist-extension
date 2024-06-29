@@ -22,6 +22,5 @@ export async function updateDiagnostics(
     throw new Error('No schema found so can not generate diagnostics')
   }
   const issues = diagnoseReactHook(sourceFile, cache.schema, config).map(toDiagnostic)
-  console.log(issues)
   collection.set(document.uri, issues)
 }

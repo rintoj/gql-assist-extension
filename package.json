@@ -280,8 +280,8 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "gql-assist": "^1.4.0",
     "graphql": "^16.8.2",
-    "gql-assist": "^1.2.5",
     "prettier": "^3.3.2",
     "tsds-tools": "^1.2.1"
   }

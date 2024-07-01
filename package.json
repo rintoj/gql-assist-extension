@@ -39,6 +39,11 @@
         "command": "gql-assist.generate",
         "category": "GraphQL Assist",
         "title": "Generate"
+      },
+      {
+        "command": "gql-assist.choose.schema",
+        "category": "GraphQL Assist",
+        "title": "Choose Schema"
       }
     ],
     "completionProvider": {
@@ -262,7 +267,7 @@
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src --ext ts && tsc -p . --noEmit",
     "test": "vscode-test"
   },
   "devDependencies": {
@@ -280,6 +285,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "fast-glob": "^3.3.2",
     "gql-assist": "^1.4.0",
     "graphql": "^16.8.2",
     "prettier": "^3.3.2",

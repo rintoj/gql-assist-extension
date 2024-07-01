@@ -1,26 +1,26 @@
-import { Position, autoCompleteHook, config, isHook } from 'gql-assist'
-import * as vscode from 'vscode'
-import { cache } from './common/cache'
-import { searchAndLoadSchema } from './gql/load-schema'
-import { documentToSourceFile } from './util/document-to-sourceFile'
+import { Position, autoCompleteHook, config } from 'gql-assist'
 import { toNonNullArray } from 'tsds-tools'
+import * as vscode from 'vscode'
+import { GQLAssistFileType, shouldProcess } from './change-tracker'
+import { getSchema } from './schema'
+import { documentToSourceFile } from './util/document-to-sourceFile'
 
-export function provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
-  if (!document || !document.uri.fsPath.endsWith('.ts')) {
-    return
+const COMPLETION_CHARS = ['\n', ' ']
+
+async function provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+  if (!shouldProcess(document, GQLAssistFileType.REACT_HOOK, 'auto-completion')) {
+    return []
+  }
+  const schema = await getSchema()
+  if (!schema) {
+    console.warn('Unable to find schema. Skipping auto completions')
+    return []
   }
   const sourceFile = documentToSourceFile(document)
-  if (!isHook(sourceFile, config)) {
-    return
-  }
-  searchAndLoadSchema()
-  if (!cache.schema) {
-    throw new Error('No schema found so can not generate diagnostics')
-  }
   const fields = autoCompleteHook(
     sourceFile,
     new Position(position.line, position.character),
-    cache.schema,
+    schema,
     config,
   )
   console.log(fields)
@@ -44,5 +44,15 @@ export function provideCompletionItems(document: vscode.TextDocument, position: 
       }
       return completionItem
     }),
+  )
+}
+
+export async function configureAutoComplete(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.languages.registerCompletionItemProvider(
+      'typescript',
+      { provideCompletionItems },
+      ...COMPLETION_CHARS,
+    ),
   )
 }

@@ -6,8 +6,7 @@ export interface GQLAssistExtensionConfig extends GQLAssistConfig {
   runOnSave: boolean
 }
 
-// Read configuration
-export function readGqlAssistConfiguration(): GQLAssistExtensionConfig {
+function readGqlAssistConfiguration(): GQLAssistExtensionConfig {
   const config = vscode.workspace.getConfiguration('gqlAssist')
   return {
     runOnSave: config.get<boolean>('behaviour.runOnSave', true),
@@ -50,17 +49,20 @@ export function readGqlAssistConfiguration(): GQLAssistExtensionConfig {
   }
 }
 
-export const config: GQLAssistExtensionConfig = readGqlAssistConfiguration()
+export const config: GQLAssistExtensionConfig = {} as any
 
 function keysOf<T extends Record<string, any>>(object: T): (keyof T)[] {
   return Object.keys(object)
 }
 
-export function handleConfigurationChange() {
+function handleConfigurationChange() {
   const newConfig: GQLAssistConfig = readGqlAssistConfiguration()
   const keys = keysOf(newConfig)
   keys.map(key => ((config as any)[key] = newConfig[key]))
   console.log('Configuration changed:', config)
 }
 
-console.log('Initial configuration:', config)
+export function configureConfigWatcher(context: vscode.ExtensionContext) {
+  handleConfigurationChange()
+  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(handleConfigurationChange))
+}

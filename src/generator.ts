@@ -15,9 +15,10 @@ import {
   printTS,
 } from 'gql-assist'
 import * as vscode from 'vscode'
-import { cache } from './common/cache'
+import { GQLAssistFileType, shouldProcess } from './change-tracker'
 import { config } from './config'
-import { searchAndLoadSchema } from './gql/load-schema'
+import { runDiagnostics } from './diagnostics'
+import { getSchema } from './schema'
 import { documentToSourceFile } from './util/document-to-sourceFile'
 
 function toVSCodePosition(position: Position): vscode.Position {
@@ -68,16 +69,14 @@ async function saveChanges(document: vscode.TextDocument, code: string) {
   vscode.window.activeTextEditor?.document.save()
 }
 
-export async function processDocument(document: vscode.TextDocument) {
+async function processDocument(document: vscode.TextDocument) {
   const sourceFile = documentToSourceFile(document)
   if (isHook(sourceFile, config)) {
-    searchAndLoadSchema()
-    if (!cache.schema) {
-      throw new Error(
-        'Failed to process the hook due to an issue with loading the required schema. Please ensure that the schema configuration is correct and accessible.',
-      )
+    const schema = await getSchema()
+    if (!schema) {
+      return console.warn('Unable to find schema. Skipping generator')
     }
-    const code = await prettify(printTS(await generateHook(sourceFile, cache.schema, config)))
+    const code = await prettify(printTS(await generateHook(sourceFile, schema, config)))
     await saveChanges(document, code)
   } else if (
     isModel(sourceFile, config) ||
@@ -88,5 +87,27 @@ export async function processDocument(document: vscode.TextDocument) {
   ) {
     const code = await prettify(printTS(await generate(sourceFile, config)))
     await saveChanges(document, code)
+    await runDiagnostics(document)
   }
+}
+
+export async function configureGenerator(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gql-assist.generate', async () => {
+      const document = vscode.window.activeTextEditor?.document
+      if (!document || !shouldProcess(document, GQLAssistFileType.ALL, 'generate')) {
+        return
+      }
+      await processDocument(document)
+    }),
+  )
+
+  context.subscriptions.push(
+    vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+      if (!config.runOnSave || !shouldProcess(document, GQLAssistFileType.ALL, 'generate')) {
+        return
+      }
+      await processDocument(document)
+    }),
+  )
 }

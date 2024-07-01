@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import { config } from './config'
+import { getRootFolders } from './root'
 
 const tracker: Record<string, number> = {}
 
@@ -11,10 +12,11 @@ export enum GQLAssistFileType {
   RESPONSE,
   ENUM,
   REACT_HOOK,
+  SCHEMA,
 }
 
-export function isValidFileType(fileName: string | undefined, type: GQLAssistFileType) {
-  const extensions = [
+export function getExtensions(type: GQLAssistFileType) {
+  return [
     type === GQLAssistFileType.ALL || type === GQLAssistFileType.MODEL
       ? config.model.fileExtensions
       : [],
@@ -33,17 +35,39 @@ export function isValidFileType(fileName: string | undefined, type: GQLAssistFil
     type === GQLAssistFileType.ALL || type === GQLAssistFileType.REACT_HOOK
       ? config.reactHook.fileExtensions
       : [],
+    type === GQLAssistFileType.ALL || type === GQLAssistFileType.SCHEMA
+      ? config.reactHook.schema
+      : [],
   ].flat()
+}
+
+export function isValidFileType(fileName: string | undefined, type: GQLAssistFileType) {
+  const extensions = getExtensions(type)
   return extensions.some(extension => fileName?.endsWith(extension))
 }
 
-export function shouldProcess(document: vscode.TextDocument | undefined, type: GQLAssistFileType) {
+function toGlobPattern(pattern: string[]) {
+  return pattern.length <= 1 ? pattern : `{${pattern.join(',')}}`
+}
+
+export function getFilePatterns(type: GQLAssistFileType) {
+  const folders = toGlobPattern(getRootFolders())
+  const pattern = toGlobPattern(getExtensions(type).map(type => `**/*${type}`))
+  return [folders, pattern].join('/')
+}
+
+export function shouldProcess(
+  document: vscode.TextDocument | undefined,
+  type: GQLAssistFileType,
+  event: string,
+) {
   if (!document || !isValidFileType(document.fileName, type)) {
     return false
   }
-  if (tracker[document.fileName] === document.version) {
+  const key = [event, document.fileName].join(':')
+  if (tracker[key] === document.version) {
     return false
   }
-  tracker[document.fileName] = document.version
+  tracker[key] = document.version
   return true
 }

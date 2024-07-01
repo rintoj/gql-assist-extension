@@ -36,7 +36,7 @@ export function getExtensions(type: GQLAssistFileType) {
       ? config.reactHook.fileExtensions
       : [],
     type === GQLAssistFileType.ALL || type === GQLAssistFileType.SCHEMA
-      ? config.reactHook.schema
+      ? config.reactHook.schemaFileNames
       : [],
   ].flat()
 }

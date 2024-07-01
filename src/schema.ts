@@ -1,26 +1,14 @@
-import { SchemaManager, config } from 'gql-assist'
+import { SchemaManager } from 'gql-assist'
 import { basename } from 'path'
+import { toNonNullArray } from 'tsds-tools'
 import * as vscode from 'vscode'
 import { GQLAssistFileType, getFilePatterns, isValidFileType } from './change-tracker'
+import { config, updateWorkspaceSchemaConfig } from './config'
 import { runDiagnosticsOnAllFiles } from './diagnostics'
 import { getRootFolders } from './root'
 
 const schemaManager = new SchemaManager()
 let schemaStatusBarItem: vscode.StatusBarItem
-
-function findSchemaFiles() {
-  const folders = getRootFolders()
-  const files = schemaManager.findSchemaFiles(folders, config)
-  updateStatusBarItem()
-  return files
-}
-
-async function findAndLoadSchemaFile() {
-  const folders = getRootFolders()
-  const files = await schemaManager.findAndLoadSchemaFile(folders, config)
-  updateStatusBarItem()
-  return files
-}
 
 function updateStatusBarItem(): void {
   const document = vscode.window.activeTextEditor?.document
@@ -39,80 +27,103 @@ function updateStatusBarItem(): void {
   schemaStatusBarItem.show()
 }
 
-function configureFileWatcher(context: vscode.ExtensionContext) {
+async function updateSchema(fileOrUrl: string | undefined) {
+  if (!fileOrUrl) {
+    schemaManager.removeSchema()
+  } else {
+    try {
+      await schemaManager.loadSchema(fileOrUrl)
+    } catch (e: any) {
+      console.log(e)
+      vscode.window.showErrorMessage(`Failed to load schema! ${e.message ?? ''}`)
+    }
+  }
+  updateStatusBarItem()
+  runDiagnosticsOnAllFiles()
+}
+
+async function configureSchemaFileWatcher(context: vscode.ExtensionContext) {
   const pattern = getFilePatterns(GQLAssistFileType.SCHEMA)
   if (!pattern) {
     return
   }
+
   const fileWatcher = vscode.workspace.createFileSystemWatcher(pattern)
   fileWatcher.onDidChange(async uri => {
     if (uri.fsPath === schemaManager.getSchemaFSPath()) {
       await schemaManager.loadSchemaFromFile(uri.fsPath)
-      runDiagnosticsOnAllFiles(getFilePatterns(GQLAssistFileType.REACT_HOOK))
     }
   })
   fileWatcher.onDidCreate(async () => {
-    await findAndLoadSchemaFile()
+    schemaManager.findSchemaFiles(getRootFolders(), config)
   })
   fileWatcher.onDidDelete(async () => {
-    findSchemaFiles()
+    schemaManager.findSchemaFiles(getRootFolders(), config)
   })
+
   context.subscriptions.push(fileWatcher)
+}
+
+async function chooseRemoteSchema() {
+  const result = await vscode.window.showInputBox({
+    prompt: 'Remote Schema',
+    placeHolder: 'File from outside working directory or https://',
+    validateInput: value => {
+      return value.trim() === '' ? 'Value cannot be empty' : null
+    },
+  })
+  if (result !== undefined) {
+    await updateWorkspaceSchemaConfig(result)
+  }
 }
 
 async function chooseSchema() {
   const files = schemaManager.getSchemaFiles()
-  if (!files.length) {
-    vscode.window.showInformationMessage('No .txt files found in the workspace.')
-    return
+  const selectedSchema = schemaManager.getSchemaFSPath()
+  if (!files.length && !selectedSchema) {
+    return chooseRemoteSchema()
   }
-  const selectedFile = await vscode.window.showQuickPick(
-    [
-      { file: undefined, label: 'Local File', kind: vscode.QuickPickItemKind.Separator },
+  const selectedOption = await vscode.window.showQuickPick(
+    toNonNullArray([
+      { action: undefined, label: 'Local File', kind: vscode.QuickPickItemKind.Separator },
       ...files.map(file => ({
+        action: 'loadSchema',
         file,
-        label: `${file === schemaManager.getSchemaFSPath() ? '$(check)' : '$(file)'}  ${basename(file)}`,
+        label: `${file === selectedSchema ? '$(check)' : '$(file)'}  ${basename(file)}`,
         detail: `       ${file}`,
       })),
-      { file: undefined, label: 'Remote', kind: vscode.QuickPickItemKind.Separator },
+      { action: undefined, label: 'Remote', kind: vscode.QuickPickItemKind.Separator },
       {
-        file: 'remote',
+        action: 'remote',
         label: '$(cloud)  Remote Schema',
         detail: '       https://...',
         kind: vscode.QuickPickItemKind.Default,
       },
-    ],
-    {
-      placeHolder: 'File name or URL',
-    },
+      selectedSchema
+        ? { action: undefined, label: 'Clear', kind: vscode.QuickPickItemKind.Separator }
+        : undefined,
+      selectedSchema
+        ? {
+            action: 'clear',
+            label: '$(close)  Clear Selected Schema',
+            detail: `       ${schemaManager.getSchemaFSPath()}`,
+            kind: vscode.QuickPickItemKind.Default,
+          }
+        : undefined,
+    ]),
+    { placeHolder: 'Select an Option' },
   )
-  if (selectedFile?.file === 'remote') {
-    const result = await vscode.window.showInputBox({
-      prompt: 'Remote Schema',
-      placeHolder: 'https://',
-      validateInput: value => {
-        return value.trim() === ''
-          ? 'Value cannot be empty'
-          : !value.trim().startsWith('http')
-            ? 'Remote urls has to start with "http"'
-            : null
-      },
-    })
-    if (result !== undefined) {
-      await schemaManager.loadSchemaFromUrl(result)
-      updateStatusBarItem()
-      runDiagnosticsOnAllFiles(getFilePatterns(GQLAssistFileType.REACT_HOOK))
-    }
-  } else {
-    if (selectedFile?.file) {
-      await schemaManager.loadSchemaFromFile(selectedFile.file as string)
-      updateStatusBarItem()
-      runDiagnosticsOnAllFiles(getFilePatterns(GQLAssistFileType.REACT_HOOK))
-    }
+  if (selectedOption?.action === 'clear') {
+    updateWorkspaceSchemaConfig(undefined)
+  } else if (selectedOption?.action === 'remote') {
+    chooseRemoteSchema()
+  } else if (selectedOption?.action === 'loadSchema') {
+    const { file } = selectedOption as { file: string }
+    await updateWorkspaceSchemaConfig(file)
   }
 }
 
-export async function configureSchemaStatus(context: vscode.ExtensionContext) {
+function configureStatusBarItem(context: vscode.ExtensionContext) {
   schemaStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)
   schemaStatusBarItem.command = 'gql-assist.choose.schema'
   context.subscriptions.push(schemaStatusBarItem)
@@ -120,17 +131,24 @@ export async function configureSchemaStatus(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('gql-assist.choose.schema', chooseSchema),
   )
-
-  await findAndLoadSchemaFile()
-  configureFileWatcher(context)
-  updateStatusBarItem()
 }
 
-export async function getSchema() {
-  const schema = schemaManager.getSchema()
-  if (schema) {
-    return schema
-  }
-  await findAndLoadSchemaFile()
+async function configureSchema(context: vscode.ExtensionContext) {
+  schemaManager.findSchemaFiles(getRootFolders(), config)
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration(() => {
+      updateSchema(config.reactHook.schema)
+    }),
+  )
+  updateSchema(config.reactHook.schema)
+}
+
+export function getSchema() {
   return schemaManager.getSchema()
+}
+
+export async function configureSchemaStatus(context: vscode.ExtensionContext) {
+  configureStatusBarItem(context)
+  configureSchemaFileWatcher(context)
+  configureSchema(context)
 }

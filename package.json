@@ -231,6 +231,12 @@
             "order": 2
           },
           "gqlAssist.reactHook.schema": {
+            "type": "string",
+            "markdownDescription": "Path where schema is located",
+            "description": "Path where schema is located",
+            "order": 3
+          },
+          "gqlAssist.reactHook.schemaFileNames": {
             "type": "array",
             "default": [
               "schema.gql",
@@ -239,9 +245,9 @@
             "items": {
               "type": "string"
             },
-            "markdownDescription": "Paths to GraphQL schema files.",
+            "markdownDescription": "Paths to look for GraphQL schema files.",
             "description": "GraphQL schema paths.",
-            "order": 3
+            "order": 4
           },
           "gqlAssist.reactHook.fileExtensions": {
             "type": "array",
@@ -253,7 +259,7 @@
             },
             "markdownDescription": "For the extension to process React hooks on save, they should be placed in a file with the extension as per the file extension configuration.",
             "description": "React hook file extensions.",
-            "order": 4
+            "order": 5
           }
         }
       }
@@ -286,7 +292,7 @@
   },
   "dependencies": {
     "fast-glob": "^3.3.2",
-    "gql-assist": "^1.4.0",
+    "gql-assist": "^1.5.0",
     "graphql": "^16.8.2",
     "prettier": "^3.3.2",
     "tsds-tools": "^1.2.1"

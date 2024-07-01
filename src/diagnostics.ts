@@ -1,5 +1,7 @@
 import { globSync } from 'fast-glob'
-import { diagnoseReactHook, readTSFile } from 'gql-assist'
+import { diagnoseReactHook, diagnoseSchema, readTSFile } from 'gql-assist'
+import * as gql from 'graphql'
+import ts from 'typescript'
 import * as vscode from 'vscode'
 import { GQLAssistFileType, getFilePatterns, shouldProcess } from './change-tracker'
 import { config } from './config'
@@ -9,30 +11,30 @@ import { toDiagnostic } from './util/to-diagnostic'
 
 export const collection = vscode.languages.createDiagnosticCollection('gql-assist')
 
+function runDiagnosticsOnContent(sourceFile: ts.SourceFile, schema: gql.GraphQLSchema | undefined) {
+  const issues = !schema
+    ? diagnoseSchema(sourceFile, schema).map(toDiagnostic)
+    : diagnoseReactHook(sourceFile, schema, config).map(toDiagnostic)
+  collection.set(vscode.Uri.file(sourceFile.fileName), issues)
+}
+
 export async function runDiagnostics(document: vscode.TextDocument): Promise<void> {
   if (!shouldProcess(document, GQLAssistFileType.REACT_HOOK, 'diagnostics')) {
     return
   }
-  const schema = await getSchema()
-  if (!schema) {
-    return console.warn('Unable to find schema. Skipping diagnostics')
-  }
-  const sourceFile = documentToSourceFile(document)
-  const issues = diagnoseReactHook(sourceFile, schema, config).map(toDiagnostic)
-  collection.set(document.uri, issues)
+  runDiagnosticsOnContent(documentToSourceFile(document), getSchema())
 }
 
 async function runDiagnosticsOnFile(file: string): Promise<void> {
-  const schema = await getSchema()
-  if (!schema) {
-    return console.warn('Unable to find schema. Skipping diagnostics')
-  }
   const sourceFile = readTSFile(file)
-  const issues = diagnoseReactHook(sourceFile, schema, config).map(toDiagnostic)
-  collection.set(vscode.Uri.file(file), issues)
+  runDiagnosticsOnContent(sourceFile, getSchema())
 }
 
-export function runDiagnosticsOnAllFiles(pattern: string) {
+export function runDiagnosticsOnAllFiles() {
+  const pattern = getFilePatterns(GQLAssistFileType.REACT_HOOK)
+  if (!pattern) {
+    return
+  }
   globSync(pattern).map(file => runDiagnosticsOnFile(file))
 }
 
@@ -42,11 +44,9 @@ function configureHookFileWatcher(context: vscode.ExtensionContext) {
     return
   }
 
-  // process files onces
-  runDiagnosticsOnAllFiles(pattern)
-
   // watch for file changes
   const fileWatcher = vscode.workspace.createFileSystemWatcher(pattern)
+  fileWatcher.onDidCreate(uri => runDiagnosticsOnFile(uri.fsPath))
   fileWatcher.onDidChange(uri => runDiagnosticsOnFile(uri.fsPath))
   fileWatcher.onDidDelete(uri => collection.set(uri, []))
   context.subscriptions.push(fileWatcher)
@@ -58,15 +58,9 @@ function configureSchemaFileWatcher(context: vscode.ExtensionContext) {
     return
   }
   const fileWatcher = vscode.workspace.createFileSystemWatcher(pattern)
-  fileWatcher.onDidChange(uri => {
-    runDiagnosticsOnAllFiles(pattern)
-  })
-  fileWatcher.onDidDelete(uri => {
-    runDiagnosticsOnAllFiles(pattern)
-  })
-  fileWatcher.onDidCreate(uri => {
-    runDiagnosticsOnAllFiles(pattern)
-  })
+  fileWatcher.onDidCreate(() => runDiagnosticsOnAllFiles())
+  fileWatcher.onDidChange(() => runDiagnosticsOnAllFiles())
+  fileWatcher.onDidDelete(() => runDiagnosticsOnAllFiles())
   context.subscriptions.push(fileWatcher)
 }
 

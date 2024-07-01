@@ -1540,10 +1540,10 @@ globby@^11.0.3, globby@^11.1.0:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
-gql-assist@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/gql-assist/-/gql-assist-1.5.0.tgz#a183c786f989617a6344d57f334f5d240be0330f"
-  integrity sha512-1Z1X40VAZH3kmW2D0JzF6bvFk0mVdtbCQrkux5xkHWlF/FfsZe08fcP3ZZIp8Nev4N7Nsnw78p9mRgSaDYbZhg==
+gql-assist@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/gql-assist/-/gql-assist-1.5.1.tgz#d7eea90efbd5e8ebcba09175fec80aed4f0ceeb6"
+  integrity sha512-Uh88tFfZqwfuvmsZ9IcOkIqlLTDawMtdN1nQbNi8PYeArVmKjddnEJ177kyJ2rL9hFfez11l5Z4XGcJ/j+g3CQ==
   dependencies:
     "@graphql-tools/graphql-file-loader" "^8.0.1"
     "@graphql-tools/json-file-loader" "^8.0.1"

@@ -2,12 +2,13 @@
   "name": "gql-assist",
   "displayName": "GraphQL Assist",
   "description": "Generates React hooks for clients, along with resolvers, models, and enums for NestJS server projects",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "engines": {
     "vscode": "^1.90.0"
   },
   "publisher": "rintoj",
   "icon": "icon.png",
+  "preview": true,
   "categories": [
     "AI",
     "Language Packs",
@@ -23,11 +24,26 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "snippets": [
+      {
+        "language": "typescript",
+        "path": "./snippets.json"
+      },
+      {
+        "language": "typescriptreact",
+        "path": "./snippets.json"
+      }
+    ],
     "commands": [
       {
         "command": "gql-assist.generate",
         "category": "GraphQL Assist",
         "title": "Generate"
+      },
+      {
+        "command": "gql-assist.choose.schema",
+        "category": "GraphQL Assist",
+        "title": "Choose Schema"
       }
     ],
     "completionProvider": {
@@ -215,6 +231,12 @@
             "order": 2
           },
           "gqlAssist.reactHook.schema": {
+            "type": "string",
+            "markdownDescription": "Path where schema is located",
+            "description": "Path where schema is located",
+            "order": 3
+          },
+          "gqlAssist.reactHook.schemaFileNames": {
             "type": "array",
             "default": [
               "schema.gql",
@@ -223,9 +245,9 @@
             "items": {
               "type": "string"
             },
-            "markdownDescription": "Paths to GraphQL schema files.",
+            "markdownDescription": "Paths to look for GraphQL schema files.",
             "description": "GraphQL schema paths.",
-            "order": 3
+            "order": 4
           },
           "gqlAssist.reactHook.fileExtensions": {
             "type": "array",
@@ -237,7 +259,7 @@
             },
             "markdownDescription": "For the extension to process React hooks on save, they should be placed in a file with the extension as per the file extension configuration.",
             "description": "React hook file extensions.",
-            "order": 4
+            "order": 5
           }
         }
       }
@@ -251,7 +273,7 @@
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src --ext ts && tsc -p . --noEmit",
     "test": "vscode-test"
   },
   "devDependencies": {
@@ -269,7 +291,9 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "gql-assist": "^1.2.5",
+    "fast-glob": "^3.3.2",
+    "gql-assist": "^1.5.1",
+    "graphql": "^16.8.2",
     "prettier": "^3.3.2",
     "tsds-tools": "^1.2.1"
   }

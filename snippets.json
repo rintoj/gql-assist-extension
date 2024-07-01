@@ -1,0 +1,54 @@
+{
+  "Create a graphql query": {
+    "prefix": ["const query", "graphql query"],
+    "body": [
+      "import gql from 'graphql-tag'",
+      "",
+      "const query = gql`",
+      "  query {",
+      "    ${1}",
+      "  }",
+      "`",
+      ""
+    ]
+  },
+  "Create a graphql query with lazy loading": {
+    "prefix": ["const lazyQuery", "graphql lazy query"],
+    "body": [
+      "import gql from 'graphql-tag'",
+      "",
+      "const lazyQuery = gql`",
+      "  query {",
+      "    ${1}",
+      "  }",
+      "`",
+      ""
+    ]
+  },
+  "Create a graphql mutation": {
+    "prefix": ["const mutation", "graphql mutation"],
+    "body": [
+      "import gql from 'graphql-tag'",
+      "",
+      "const mutation = gql`",
+      "  mutation {",
+      "    ${1}",
+      "  }",
+      "`",
+      ""
+    ]
+  },
+  "Create a graphql subscription": {
+    "prefix": ["const subscription", "graphql subscription"],
+    "body": [
+      "import gql from 'graphql-tag'",
+      "",
+      "const subscription = gql`",
+      "  subscription {",
+      "    ${1}",
+      "  }",
+      "`",
+      ""
+    ]
+  }
+}

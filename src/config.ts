@@ -2,39 +2,48 @@ import { GQLAssistConfig, NumericType, ServerLibrary } from 'gql-assist/dist/con
 import * as vscode from 'vscode'
 
 // Define configuration interface
+
 export interface GQLAssistExtensionConfig extends GQLAssistConfig {
   runOnSave: boolean
 }
 
-// Read configuration
-export function readGqlAssistConfiguration(): GQLAssistExtensionConfig {
-  const config = vscode.workspace.getConfiguration('gqlAssist')
+const schemaConfigKey = 'reactHook.schema'
+
+function getExtensionConfig() {
+  return vscode.workspace.getConfiguration('gqlAssist')
+}
+
+function readGqlAssistConfiguration(): GQLAssistExtensionConfig {
+  const extensionConfig = getExtensionConfig()
   return {
-    runOnSave: config.get<boolean>('behaviour.runOnSave', true),
+    runOnSave: extensionConfig.get<boolean>('behaviour.runOnSave', true),
     behaviour: {
-      nullableByDefault: config.get<boolean>('behaviour.nullableByDefault', true),
-      serverLibrary: config.get<ServerLibrary>('behaviour.serverLibrary', '@nestjs/graphql'),
-      defaultNumberType: config.get<NumericType>('behaviour.defaultNumberType', 'Int'),
+      nullableByDefault: extensionConfig.get<boolean>('behaviour.nullableByDefault', true),
+      serverLibrary: extensionConfig.get<ServerLibrary>(
+        'behaviour.serverLibrary',
+        '@nestjs/graphql',
+      ),
+      defaultNumberType: extensionConfig.get<NumericType>('behaviour.defaultNumberType', 'Int'),
     },
     model: {
-      enable: config.get<boolean>('model.enable', true),
-      fileExtensions: config.get<string[]>('model.fileExtensions', ['.model.ts']),
+      enable: extensionConfig.get<boolean>('model.enable', true),
+      fileExtensions: extensionConfig.get<string[]>('model.fileExtensions', ['.model.ts']),
     },
     resolver: {
-      enable: config.get<boolean>('resolver.enable', true),
-      fileExtensions: config.get<string[]>('resolver.fileExtensions', ['.resolver.ts']),
+      enable: extensionConfig.get<boolean>('resolver.enable', true),
+      fileExtensions: extensionConfig.get<string[]>('resolver.fileExtensions', ['.resolver.ts']),
     },
     input: {
-      enable: config.get<boolean>('input.enable', true),
-      fileExtensions: config.get<string[]>('input.fileExtensions', ['.input.ts']),
+      enable: extensionConfig.get<boolean>('input.enable', true),
+      fileExtensions: extensionConfig.get<string[]>('input.fileExtensions', ['.input.ts']),
     },
     response: {
-      enable: config.get<boolean>('response.enable', true),
-      fileExtensions: config.get<string[]>('response.fileExtensions', ['.response.ts']),
+      enable: extensionConfig.get<boolean>('response.enable', true),
+      fileExtensions: extensionConfig.get<string[]>('response.fileExtensions', ['.response.ts']),
     },
     enum: {
-      enable: config.get<boolean>('enum.enable', true),
-      fileExtensions: config.get<string[]>('enum.fileExtensions', [
+      enable: extensionConfig.get<boolean>('enum.enable', true),
+      fileExtensions: extensionConfig.get<string[]>('enum.fileExtensions', [
         '.enum.ts',
         '.model.ts',
         '.input.ts',
@@ -42,25 +51,38 @@ export function readGqlAssistConfiguration(): GQLAssistExtensionConfig {
       ]),
     },
     reactHook: {
-      enable: config.get<boolean>('reactHook.enable', true),
-      library: config.get<string>('reactHook.library', '@apollo/client'),
-      schema: config.get<string[]>('reactHook.schema', ['./schema.gql', 'schema.graphql']),
-      fileExtensions: config.get<string[]>('reactHook.fileExtensions', ['.gql.ts']),
+      enable: extensionConfig.get<boolean>('reactHook.enable', true),
+      library: extensionConfig.get<string>('reactHook.library', '@apollo/client'),
+      schema: extensionConfig.get<string>(schemaConfigKey),
+      schemaFileNames: extensionConfig.get<string[]>('reactHook.schemaFileNames', [
+        './schema.gql',
+        'schema.graphql',
+      ]),
+      fileExtensions: extensionConfig.get<string[]>('reactHook.fileExtensions', ['.gql.ts']),
     },
   }
 }
 
-export const config: GQLAssistExtensionConfig = readGqlAssistConfiguration()
+export const config: GQLAssistExtensionConfig = {} as any
 
 function keysOf<T extends Record<string, any>>(object: T): (keyof T)[] {
   return Object.keys(object)
 }
 
-export function handleConfigurationChange() {
+function handleConfigurationChange() {
   const newConfig: GQLAssistConfig = readGqlAssistConfiguration()
   const keys = keysOf(newConfig)
   keys.map(key => ((config as any)[key] = newConfig[key]))
-  console.log('Configuration changed:', config)
+  console.log('Configuration changed:', config.reactHook.schema)
+  return config
 }
 
-console.log('Initial configuration:', config)
+export function configureConfigWatcher(context: vscode.ExtensionContext) {
+  const config = handleConfigurationChange()
+  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(handleConfigurationChange))
+  return config
+}
+
+export async function updateWorkspaceSchemaConfig(schema: string | undefined) {
+  await getExtensionConfig().update(schemaConfigKey, schema, vscode.ConfigurationTarget.Workspace)
+}

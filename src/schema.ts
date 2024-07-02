@@ -1,5 +1,6 @@
+import { existsSync } from 'fs'
 import { SchemaManager } from 'gql-assist'
-import { basename } from 'path'
+import path, { basename, dirname, resolve } from 'path'
 import { toNonNullArray } from 'tsds-tools'
 import * as vscode from 'vscode'
 import { GQLAssistFileType, getFilePatterns, isValidFileType } from './change-tracker'
@@ -54,13 +55,6 @@ async function configureSchemaFileWatcher(context: vscode.ExtensionContext) {
       await schemaManager.loadSchemaFromFile(uri.fsPath)
     }
   })
-  fileWatcher.onDidCreate(async () => {
-    schemaManager.findSchemaFiles(getRootFolders(), config)
-  })
-  fileWatcher.onDidDelete(async () => {
-    schemaManager.findSchemaFiles(getRootFolders(), config)
-  })
-
   context.subscriptions.push(fileWatcher)
 }
 
@@ -77,8 +71,40 @@ async function chooseRemoteSchema() {
   }
 }
 
+function toAbsoluteRootPath(root: string, roots: string[]) {
+  if (roots.length > 1) {
+    return `${dirname(root)}${path.sep}`
+  }
+  return `${root}${path.sep}`
+}
+
+function toRelativeSchemaFile(file: string) {
+  const roots = getRootFolders()
+  for (const root of roots) {
+    const absolutePath = toAbsoluteRootPath(root, roots)
+    if (file.startsWith(absolutePath)) {
+      return file.replace(absolutePath, '')
+    }
+  }
+  return file
+}
+
+function toAbsoluteSchemaFile(file: string | undefined) {
+  if (!file) {
+    return file
+  }
+  const roots = getRootFolders()
+  for (const root of roots) {
+    const absoluteFile = resolve(toAbsoluteRootPath(root, roots), file)
+    if (existsSync(absoluteFile)) {
+      return absoluteFile
+    }
+  }
+  return file
+}
+
 async function chooseSchema() {
-  const files = schemaManager.getSchemaFiles()
+  const files = schemaManager.findSchemaFiles(getRootFolders(), config)
   const selectedSchema = schemaManager.getSchemaFSPath()
   if (!files.length && !selectedSchema) {
     return chooseRemoteSchema()
@@ -88,9 +114,9 @@ async function chooseSchema() {
       { action: undefined, label: 'Local File', kind: vscode.QuickPickItemKind.Separator },
       ...files.map(file => ({
         action: 'loadSchema',
-        file,
+        file: toRelativeSchemaFile(file),
         label: `${file === selectedSchema ? '$(check)' : '$(file)'}  ${basename(file)}`,
-        detail: `       ${file}`,
+        detail: `       ${toRelativeSchemaFile(file)}`,
       })),
       { action: undefined, label: 'Remote', kind: vscode.QuickPickItemKind.Separator },
       {
@@ -99,17 +125,6 @@ async function chooseSchema() {
         detail: '       https://...',
         kind: vscode.QuickPickItemKind.Default,
       },
-      selectedSchema
-        ? { action: undefined, label: 'Clear', kind: vscode.QuickPickItemKind.Separator }
-        : undefined,
-      selectedSchema
-        ? {
-            action: 'clear',
-            label: '$(close)  Clear Selected Schema',
-            detail: `       ${schemaManager.getSchemaFSPath()}`,
-            kind: vscode.QuickPickItemKind.Default,
-          }
-        : undefined,
     ]),
     { placeHolder: 'Select an Option' },
   )
@@ -134,13 +149,12 @@ function configureStatusBarItem(context: vscode.ExtensionContext) {
 }
 
 async function configureSchema(context: vscode.ExtensionContext) {
-  schemaManager.findSchemaFiles(getRootFolders(), config)
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(() => {
-      updateSchema(config.reactHook.schema)
+      updateSchema(toAbsoluteSchemaFile(config.reactHook.schema))
     }),
   )
-  updateSchema(config.reactHook.schema)
+  updateSchema(toAbsoluteSchemaFile(config.reactHook.schema))
 }
 
 export function getSchema() {

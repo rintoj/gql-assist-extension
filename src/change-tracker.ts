@@ -1,8 +1,9 @@
 import * as vscode from 'vscode'
 import { config } from './config'
 import { getRootFolders } from './root'
+import { generateHash } from 'gql-assist'
 
-const tracker: Record<string, number> = {}
+const tracker: Record<string, string> = {}
 
 export enum GQLAssistFileType {
   ALL,
@@ -65,9 +66,10 @@ export function shouldProcess(
     return false
   }
   const key = [event, document.fileName].join(':')
-  if (tracker[key] === document.version) {
+  const hash = generateHash(document.getText() ?? '')
+  if (tracker[key] === hash) {
     return false
   }
-  tracker[key] = document.version
+  tracker[key] = hash
   return true
 }

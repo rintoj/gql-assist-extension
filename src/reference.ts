@@ -5,6 +5,7 @@ import {
   provideDefinitionFromSource,
   provideReferenceFromSchema,
   provideSymbolsFromSchema,
+  SymbolInformation,
   SymbolType,
 } from 'gql-assist'
 import * as vscode from 'vscode'
@@ -33,13 +34,7 @@ async function provideDefinitionForTs(document: vscode.TextDocument, position: v
   if (!location || !range) {
     return null
   }
-  return new vscode.Location(
-    vscode.Uri.parse(location),
-    new vscode.Range(
-      new vscode.Position(range.start.line, range.start.character),
-      new vscode.Position(range.end.line, range.end.character),
-    ),
-  )
+  return new vscode.Location(vscode.Uri.parse(location), toVSCodeRange(range))
 }
 
 async function provideDefinitionForSchema(
@@ -75,18 +70,32 @@ function toSymbolKind(type: SymbolType) {
     case 'Scalar':
       return vscode.SymbolKind.Constant
     case 'Type':
-      return vscode.SymbolKind.Interface
+      return vscode.SymbolKind.Class
     case 'Enum':
       return vscode.SymbolKind.Enum
     case 'Input':
-      return vscode.SymbolKind.Interface
+      return vscode.SymbolKind.Object
     case 'Field':
-      return vscode.SymbolKind.Property
+      return vscode.SymbolKind.Field
     case 'Union':
       return vscode.SymbolKind.Struct
     case 'Interface':
       return vscode.SymbolKind.Interface
+    case 'EnumMember':
+      return vscode.SymbolKind.EnumMember
   }
+}
+
+function toDocumentSymbol(symbol: SymbolInformation): vscode.DocumentSymbol {
+  const parent = new vscode.DocumentSymbol(
+    symbol.name,
+    symbol.containerName,
+    toSymbolKind(symbol.type),
+    toVSCodeRange(symbol.range),
+    toVSCodeRange(symbol.range),
+  )
+  parent.children = symbol.children.map(child => toDocumentSymbol(child))
+  return parent
 }
 
 function provideDocumentSymbolsForSchema(document: vscode.TextDocument): vscode.DocumentSymbol[] {
@@ -95,17 +104,7 @@ function provideDocumentSymbolsForSchema(document: vscode.TextDocument): vscode.
     return []
   }
   const symbols = provideSymbolsFromSchema(source)
-  console.log(symbols)
-  return symbols.map(
-    symbol =>
-      new vscode.DocumentSymbol(
-        symbol.name,
-        symbol.containerName,
-        toSymbolKind(symbol.type),
-        toVSCodeRange(symbol.range),
-        toVSCodeRange(symbol.range),
-      ),
-  )
+  return symbols.map(symbol => toDocumentSymbol(symbol))
 }
 
 export async function configureReferenceProvider(context: vscode.ExtensionContext) {

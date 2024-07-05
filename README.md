@@ -1,177 +1,66 @@
 # GraphQL Assist
 
-GraphQL Assist is a powerful tool designed to streamline the development of GraphQL APIs in a
-[NestJS](https://docs.nestjs.com/graphql/quick-start) environment. By automatically converting
-TypeScript classes, resolvers, and enums into their corresponding GraphQL definitions, GraphQL
-Assist significantly reduces the amount of boilerplate code you need to write.
-
-### VSCode Extension
-
-For an enhanced development experience, you can install the GraphQL Assist extension from the Visual
-Studio Code Marketplace. This extension provides in-editor completions and suggestions, making it
-even easier to work with GraphQL and NestJS.
-
-1. Open Visual Studio Code.
-2. Go to the Extensions view by clicking on the Extensions icon in the Activity Bar on the side of
-   the window or by pressing `Ctrl+Shift+X`.
-3. Search for "GraphQL Assist".
-4. Click the Install button to install the extension.
-5. Once installed, the extension will provide code completions and suggestions directly within your
-   IDE.
+GraphQL Assist is your go-to tool for supercharging GraphQL development. It simplifies writing
+GraphQL queries for Apollo Client by converting them into TypeScript code, making your development
+process smoother and error-free. On the server side, GraphQL Assist streamlines API development in
+NestJS by automatically converting TypeScript classes, resolvers, and enums into their GraphQL
+counterparts, drastically reducing boilerplate code. With robust GraphQL syntax support, including
+full highlighting and language support for JavaScript, TypeScript, and JSX/TSX, GraphQL Assist
+enhances your coding experience.
 
 ## Features
 
-GraphQL Assist provides several key functionalities:
+Discover the power of GraphQL Assist with its suite of robust functionalities:
 
-- **Model Conversion**: Automatically converts TypeScript classes to NestJS GraphQL Object Types.
-  This can be useful for generating models, inputs and response types.
-- **Resolver Conversion**: Automatically transforms resolver methods to GraphQL resolvers with
-  appropriate decorators.
-- **Field Resolver Conversion**: Converts methods to GraphQL field resolvers with the necessary
-  decorators.
-- **Enum Conversion**: Transforms TypeScript enums to GraphQL enums and registers them.
+### React Hook
+
+Transform your GraphQL queries into TypeScript code seamlessly compatible with
+[`@apollo/client`](https://www.apollographql.com/docs/react/). With GraphQL Assist, writing GraphQL
+queries for Apollo Client becomes a breeze, letting you concentrate on what matters most—building
+your application.
+
+### Server Side
+
+Streamline your GraphQL API development in a [NestJS](https://docs.nestjs.com/graphql/quick-start)
+environment with GraphQL Assist. Automatically convert TypeScript classes, resolvers, and enums into
+their GraphQL definitions, slashing boilerplate code and boosting productivity.
+
+- **Model Conversion**: Instantly convert TypeScript classes to NestJS GraphQL Object Types for
+  generating models, inputs, and response types.
+- **Resolver Conversion**: Effortlessly transform resolver methods into GraphQL resolvers with the
+  correct decorators.
+- **Field Resolver Conversion**: Easily convert methods to GraphQL field resolvers with the
+  necessary decorators.
+- **Enum Conversion**: Swiftly transform TypeScript enums to GraphQL enums and register them.
+
+### GraphQL Syntax Support
+
+Enhance your coding experience with full GraphQL syntax highlighting and language support, including
+bracket matching.
+
+- **Syntax Highlighting**: Supports .graphql, .gql, and .graphqls files.
+- **Language Support**: JavaScript, TypeScript, and JSX/TSX (e.g., test.js & test.ts).
+
+## Installation
+
+Enhance your development experience with the GraphQL Assist extension available on the Visual Studio
+Code Marketplace. This extension provides in-editor completions and suggestions, making it easier to
+work with GraphQL and NestJS.
+
+Use it in 5 simple steps:
+
+1. **Open**: Open Visual Studio Code.
+2. **Navigate**: Go to the Extensions view by clicking on the Extensions icon in the Activity Bar or
+   by pressing `Ctrl+Shift+X`.
+3. **Search**: Search for "GraphQL Assist".
+4. **Install**: Click the Install button to install the extension.
+5. **Enjoy**: Once installed, the extension will provide code completions and suggestions directly
+   within your IDE.
+
+For additional automation, you can also use the
+[`gql-assist`](https://www.npmjs.com/package/gql-assist) command line tool to automate validations.
 
 ## Usage
-
-### Models
-
-For GraphQL Assist to recognize and convert a TypeScript class into a GraphQL ObjectType, it should
-be placed in a file with the extension `.model.ts`.
-
-#### Example
-
-Given the following TypeScript class:
-
-```ts
-export class User {
-  id!: string
-  name?: string
-  email?: string
-  bio?: string
-  role?: UserRole
-}
-```
-
-GraphQL Assist will convert it to:
-
-```ts
-import { Field, ID, ObjectType } from '@nestjs/graphql'
-
-@ObjectType()
-export class User {
-  @Field(() => ID)
-  id!: string
-
-  @Field({ nullable: true })
-  name?: string
-
-  @Field({ nullable: true })
-  email?: string
-
-  @Field({ nullable: true })
-  bio?: string
-
-  @Field(() => UserRole, { nullable: true })
-  role?: UserRole
-}
-```
-
-### Resolvers
-
-For GraphQL Assist to recognize and convert a resolver method, it should be placed in a file with
-the extension `.resolver.ts`.
-
-#### Example
-
-Given the following TypeScript class:
-
-```ts
-export class UserResolver {
-  user(id: string, context: GQLContext) {
-    return null
-  }
-}
-```
-
-GraphQL Assist will convert it to:
-
-```ts
-import { Args, Context, ID, Query, Resolver } from '@nestjs/graphql'
-
-@Resolver()
-export class UserResolver {
-  @Query()
-  user(
-    @Args({ name: 'id', type: () => ID })
-    id: string,
-
-    @Context()
-    context: GQLContext,
-  ) {
-    return null
-  }
-}
-```
-
-### Field Resolvers
-
-For GraphQL Assist to recognize and convert a field resolver method, it should be placed in a file
-with the extension `.resolver.ts`.
-
-#### Example
-
-Given the following TypeScript class:
-
-```ts
-@Resolver(() => User)
-export class UserResolver {
-  fullName(parent: UserType) {}
-}
-```
-
-GraphQL Assist will convert it to:
-
-```ts
-import { Parent, ResolveField, Resolver } from '@nestjs/graphql'
-
-@Resolver(() => User)
-export class UserResolver implements FieldResolver<User, UserType> {
-  @ResolveField()
-  fullName(
-    @Parent()
-    parent: UserType,
-  ) {}
-}
-```
-
-### Enums
-
-For GraphQL Assist to recognize and convert enums, they should be placed in a file with the
-extension `.enum.ts`.
-
-#### Example
-
-Given the following TypeScript enum:
-
-```ts
-export enum UserStatus {
-  ACTIVE,
-  INACTIVE,
-}
-```
-
-GraphQL Assist will convert it to:
-
-```ts
-import { registerEnumType } from '@nestjs/graphql'
-
-export enum UserStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-}
-
-registerEnumType(UserStatus, { name: 'UserStatus' })
-```
 
 ### React Hook
 
@@ -179,6 +68,12 @@ GraphQL Assist can also help you with writing queries for graphql client by conv
 queries into TypeScript code compatible with `@apollo/client`. With GraphQL Assist, writing GraphQL
 queries for Apollo Client becomes easier and less error-prone, allowing you to focus more on
 building your application.
+
+Use it with 3 simple steps:
+
+1. Create a file with extension `.gql.ts`
+2. Write the graphql query
+3. Save the file
 
 #### Example
 
@@ -245,6 +140,170 @@ efficiently.
 
 By default GraphQL assist will look for schema at the root of all your workspace folders and for the
 name `schema.gql` or `schema.graphql`
+
+### Models
+
+For GraphQL Assist to recognize and convert a TypeScript class into a GraphQL ObjectType, it should
+be placed in a file with the extension `.model.ts`.
+
+Use this feature with 3 simple steps:
+
+1. Create a file with extension `.model.ts`
+2. Write the basic structure of the model
+3. Save the file
+
+#### Example
+
+Given the following TypeScript class:
+
+```ts
+export class User {
+  id!: string
+  name?: string
+  email?: string
+  bio?: string
+  role?: UserRole
+}
+```
+
+GraphQL Assist will convert it to:
+
+```ts
+import { Field, ID, ObjectType } from '@nestjs/graphql'
+
+@ObjectType()
+export class User {
+  @Field(() => ID)
+  id!: string
+
+  @Field({ nullable: true })
+  name?: string
+
+  @Field({ nullable: true })
+  email?: string
+
+  @Field({ nullable: true })
+  bio?: string
+
+  @Field(() => UserRole, { nullable: true })
+  role?: UserRole
+}
+```
+
+### Resolvers
+
+For GraphQL Assist to recognize and convert a resolver method, it should be placed in a file with
+the extension `.resolver.ts`.
+
+Use this feature with 3 simple steps:
+
+1. Create a file with extension `.resolver.ts`
+2. Write the basic structure of the resolver
+3. Save the file
+
+#### Example
+
+Given the following TypeScript class:
+
+```ts
+export class UserResolver {
+  user(id: string, context: GQLContext) {
+    return null
+  }
+}
+```
+
+GraphQL Assist will convert it to:
+
+```ts
+import { Args, Context, ID, Query, Resolver } from '@nestjs/graphql'
+
+@Resolver()
+export class UserResolver {
+  @Query()
+  user(
+    @Args({ name: 'id', type: () => ID })
+    id: string,
+
+    @Context()
+    context: GQLContext,
+  ) {
+    return null
+  }
+}
+```
+
+### Field Resolvers
+
+For GraphQL Assist to recognize and convert a field resolver method, it should be placed in a file
+with the extension `.resolver.ts`.
+
+Use this feature with 3 simple steps:
+
+1. Create a file with extension `.resolver.ts`
+2. Write the basic structure of the field resolver
+3. Save the file
+
+#### Example
+
+Given the following TypeScript class:
+
+```ts
+@Resolver(() => User)
+export class UserResolver {
+  fullName(parent: UserType) {}
+}
+```
+
+GraphQL Assist will convert it to:
+
+```ts
+import { Parent, ResolveField, Resolver } from '@nestjs/graphql'
+
+@Resolver(() => User)
+export class UserResolver implements FieldResolver<User, UserType> {
+  @ResolveField()
+  fullName(
+    @Parent()
+    parent: UserType,
+  ) {}
+}
+```
+
+### Enums
+
+For GraphQL Assist to recognize and convert enums, they should be placed in a file with the
+extension `.enum.ts`.
+
+Use this feature with 3 simple steps:
+
+1. Create a file with extension `.resolver.ts`
+2. Write an enum
+3. Save the file
+
+#### Example
+
+Given the following TypeScript enum:
+
+```ts
+export enum UserStatus {
+  ACTIVE,
+  INACTIVE,
+}
+```
+
+GraphQL Assist will convert it to:
+
+```ts
+import { registerEnumType } from '@nestjs/graphql'
+
+export enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
+
+registerEnumType(UserStatus, { name: 'UserStatus' })
+```
 
 ## Configuration
 

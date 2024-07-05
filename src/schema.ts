@@ -161,6 +161,10 @@ export function getSchema() {
   return schemaManager.getSchema()
 }
 
+export function getSchemaLocation() {
+  return schemaManager.getSchemaFSPath()
+}
+
 export async function configureSchemaStatus(context: vscode.ExtensionContext) {
   configureStatusBarItem(context)
   configureSchemaFileWatcher(context)

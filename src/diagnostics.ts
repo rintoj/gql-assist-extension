@@ -1,4 +1,4 @@
-import { globSync } from 'fast-glob'
+import { globStream, globSync } from 'fast-glob'
 import { diagnoseReactHook, diagnoseSchema, readTSFile } from 'gql-assist'
 import * as gql from 'graphql'
 import ts from 'typescript'
@@ -30,12 +30,15 @@ async function runDiagnosticsOnFile(file: string): Promise<void> {
   runDiagnosticsOnContent(sourceFile, getSchema())
 }
 
-export function runDiagnosticsOnAllFiles() {
+export async function runDiagnosticsOnAllFiles() {
   const pattern = getFilePatterns(GQLAssistFileType.REACT_HOOK)
   if (!pattern) {
     return
   }
-  globSync(pattern).map(file => runDiagnosticsOnFile(file))
+  const stream = globStream(pattern)
+  for await (const entry of stream) {
+    await runDiagnosticsOnFile(entry as string)
+  }
 }
 
 function configureHookFileWatcher(context: vscode.ExtensionContext) {

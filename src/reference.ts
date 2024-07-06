@@ -1,7 +1,9 @@
 import * as gqlAssist from 'gql-assist'
 import * as vscode from 'vscode'
+import { config } from './config'
 import { getSchema, getSchemaLocation } from './schema'
 import { documentToSourceFile } from './util/document-to-sourceFile'
+import { getFilePatterns, GQLAssistFileType } from './change-tracker'
 
 function toVSCodeRange(range: gqlAssist.Range) {
   return new vscode.Range(
@@ -46,14 +48,18 @@ async function provideReferencesForSchema(
   document: vscode.TextDocument,
   position: vscode.Position,
 ) {
-  const ranges = gqlAssist.provideReferenceForSchema(
+  const locations = await gqlAssist.provideReferenceForSchema(
     document.getText(),
+    document.uri.fsPath,
     new gqlAssist.Position(position.line, position.character),
+    getFilePatterns(GQLAssistFileType.REACT_HOOK),
   )
-  if (!ranges) {
+  if (!locations) {
     return []
   }
-  return ranges.map(range => new vscode.Location(document.uri, toVSCodeRange(range)))
+  return locations.map(
+    location => new vscode.Location(vscode.Uri.parse(location.path), toVSCodeRange(location.range)),
+  )
 }
 
 function toSymbolKind(type: gqlAssist.SymbolType) {

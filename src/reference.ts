@@ -1,18 +1,11 @@
-import {
-  Range as GQLRange,
-  Position,
-  provideDefinitionFromSchema,
-  provideDefinitionFromSource,
-  provideReferenceFromSchema,
-  provideSymbolsFromSchema,
-  SymbolInformation,
-  SymbolType,
-} from 'gql-assist'
+import * as gqlAssist from 'gql-assist'
 import * as vscode from 'vscode'
+import { config } from './config'
 import { getSchema, getSchemaLocation } from './schema'
 import { documentToSourceFile } from './util/document-to-sourceFile'
+import { getFilePatterns, GQLAssistFileType } from './change-tracker'
 
-function toVSCodeRange(range: GQLRange) {
+function toVSCodeRange(range: gqlAssist.Range) {
   return new vscode.Range(
     new vscode.Position(range.start.line, range.start.character),
     new vscode.Position(range.end.line, range.end.character),
@@ -25,9 +18,9 @@ async function provideDefinitionForTs(document: vscode.TextDocument, position: v
     return null
   }
   const sourceFile = documentToSourceFile(document)
-  const range = provideDefinitionFromSource(
+  const range = gqlAssist.provideDefinitionForSource(
     sourceFile,
-    new Position(position.line, position.character),
+    new gqlAssist.Position(position.line, position.character),
     schema,
   )
   const location = getSchemaLocation()
@@ -41,9 +34,9 @@ async function provideDefinitionForSchema(
   document: vscode.TextDocument,
   position: vscode.Position,
 ) {
-  const range = provideDefinitionFromSchema(
+  const range = gqlAssist.provideDefinitionForSchema(
     document.getText(),
-    new Position(position.line, position.character),
+    new gqlAssist.Position(position.line, position.character),
   )
   if (!range) {
     return null
@@ -55,17 +48,21 @@ async function provideReferencesForSchema(
   document: vscode.TextDocument,
   position: vscode.Position,
 ) {
-  const ranges = provideReferenceFromSchema(
+  const locations = await gqlAssist.provideReferenceForSchema(
     document.getText(),
-    new Position(position.line, position.character),
+    document.uri.fsPath,
+    new gqlAssist.Position(position.line, position.character),
+    getFilePatterns(GQLAssistFileType.REACT_HOOK),
   )
-  if (!ranges) {
+  if (!locations) {
     return []
   }
-  return ranges.map(range => new vscode.Location(document.uri, toVSCodeRange(range)))
+  return locations.map(
+    location => new vscode.Location(vscode.Uri.parse(location.path), toVSCodeRange(location.range)),
+  )
 }
 
-function toSymbolKind(type: SymbolType) {
+function toSymbolKind(type: gqlAssist.SymbolType) {
   switch (type) {
     case 'Scalar':
       return vscode.SymbolKind.Constant
@@ -86,7 +83,7 @@ function toSymbolKind(type: SymbolType) {
   }
 }
 
-function toDocumentSymbol(symbol: SymbolInformation): vscode.DocumentSymbol {
+function toDocumentSymbol(symbol: gqlAssist.SymbolInformation): vscode.DocumentSymbol {
   const parent = new vscode.DocumentSymbol(
     symbol.name,
     symbol.containerName,
@@ -103,7 +100,7 @@ function provideDocumentSymbolsForSchema(document: vscode.TextDocument): vscode.
   if (!source) {
     return []
   }
-  const symbols = provideSymbolsFromSchema(source)
+  const symbols = gqlAssist.provideSymbolsForSchema(source)
   return symbols.map(symbol => toDocumentSymbol(symbol))
 }
 

@@ -3,7 +3,7 @@ name: Publish VS Code Extension
 on:
   push:
     branches:
-      - main
+      - fix/release-action
 
 concurrency:
   group: release-${{ github.ref }}
@@ -31,6 +31,8 @@ jobs:
       - name: Bump version
         id: bump_version
         run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           CURRENT_VERSION=$(node -pe "require('./package.json').version")
           echo "Current version: $CURRENT_VERSION"
           NEW_VERSION=$(npm version patch)  # Change patch to minor or major as needed
@@ -45,6 +47,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git push origin --tags

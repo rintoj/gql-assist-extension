@@ -51,9 +51,11 @@ function toGlobPattern(pattern: string[]) {
   return pattern.length <= 1 ? pattern : `{${pattern.join(',')}}`
 }
 
-export function getFilePatterns(type: GQLAssistFileType) {
+export function getFilePatterns(...types: GQLAssistFileType[]) {
   const folders = toGlobPattern(getRootFolders())
-  const pattern = toGlobPattern(getExtensions(type).map(type => `**/*${type}`))
+  const pattern = toGlobPattern(
+    types.flatMap(type => getExtensions(type)).map(type => `**/*${type}`),
+  )
   return [folders, pattern].join('/')
 }
 

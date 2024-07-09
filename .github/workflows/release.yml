@@ -34,9 +34,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           CURRENT_VERSION=$(node -pe "require('./package.json').version")
-          echo "Current version: $CURRENT_VERSION"
-          NEW_VERSION=$(npm version patch)  # Change patch to minor or major as needed
-          echo "New version: $NEW_VERSION"
+          npm version patch -m "Bump version to %s"
 
       - name: Publish Extension
         env:
@@ -47,6 +45,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git add package.json
-          git commit -m "update package version"
-          git push origin --tags
+          git add package.json package-lock.json
+          git commit -m "Bump version in package.json"
+          git push origin main --tags

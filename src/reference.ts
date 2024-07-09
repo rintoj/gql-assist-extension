@@ -1,9 +1,9 @@
 import * as gqlAssist from 'gql-assist'
 import * as vscode from 'vscode'
+import { getFilePatterns, GQLAssistFileType } from './change-tracker'
 import { config } from './config'
 import { getSchema, getSchemaLocation } from './schema'
 import { documentToSourceFile } from './util/document-to-sourceFile'
-import { getFilePatterns, GQLAssistFileType } from './change-tracker'
 
 function toVSCodeRange(range: gqlAssist.Range) {
   return new vscode.Range(
@@ -18,30 +18,39 @@ async function provideDefinitionForTs(document: vscode.TextDocument, position: v
     return null
   }
   const sourceFile = documentToSourceFile(document)
-  const range = gqlAssist.provideDefinitionForSource(
+  const schemaLocation = getSchemaLocation()
+  if (!schemaLocation) {
+    return null
+  }
+  const location = gqlAssist.provideDefinitionForSource(
     sourceFile,
     new gqlAssist.Position(position.line, position.character),
     schema,
+    schemaLocation,
+    config,
   )
-  const location = getSchemaLocation()
-  if (!location || !range) {
+  if (!location) {
     return null
   }
-  return new vscode.Location(vscode.Uri.parse(location), toVSCodeRange(range))
+  return new vscode.Location(vscode.Uri.parse(location.path), toVSCodeRange(location.range))
 }
 
 async function provideDefinitionForSchema(
   document: vscode.TextDocument,
   position: vscode.Position,
 ) {
-  const range = gqlAssist.provideDefinitionForSchema(
+  const location = await gqlAssist.provideDefinitionForSchema(
     document.getText(),
+    document.uri.fsPath,
     new gqlAssist.Position(position.line, position.character),
+    getFilePatterns(GQLAssistFileType.RESOLVER),
+    getFilePatterns(GQLAssistFileType.MODEL, GQLAssistFileType.INPUT, GQLAssistFileType.RESPONSE),
+    getFilePatterns(GQLAssistFileType.ENUM),
   )
-  if (!range) {
+  if (!location) {
     return null
   }
-  return new vscode.Location(document.uri, toVSCodeRange(range))
+  return new vscode.Location(vscode.Uri.parse(location.path), toVSCodeRange(location.range))
 }
 
 async function provideReferencesForSchema(

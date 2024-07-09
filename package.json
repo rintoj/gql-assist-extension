@@ -2,7 +2,7 @@
   "name": "gql-assist",
   "displayName": "GraphQL Assist",
   "description": "Generates React hooks for clients, along with resolvers, models, and enums for NestJS server projects",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "engines": {
     "vscode": "^1.90.0"
   },

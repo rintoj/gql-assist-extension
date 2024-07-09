@@ -3,7 +3,7 @@ name: Publish VS Code Extension
 on:
   push:
     branches:
-      - fix/release-action
+      - main
 
 concurrency:
   group: release-${{ github.ref }}

@@ -12,6 +12,7 @@ export enum GQLAssistFileType {
   INPUT,
   RESPONSE,
   ENUM,
+  SCALAR,
   REACT_HOOK,
   SCHEMA,
 }
@@ -35,6 +36,9 @@ export function getExtensions(type: GQLAssistFileType) {
       : [],
     type === GQLAssistFileType.ALL || type === GQLAssistFileType.REACT_HOOK
       ? config.reactHook.fileExtensions
+      : [],
+    type === GQLAssistFileType.ALL || type === GQLAssistFileType.SCALAR
+      ? config.scalar.fileExtensions
       : [],
     type === GQLAssistFileType.ALL || type === GQLAssistFileType.SCHEMA
       ? config.reactHook.schemaFileNames

@@ -46,6 +46,7 @@ async function provideDefinitionForSchema(
     getFilePatterns(GQLAssistFileType.RESOLVER),
     getFilePatterns(GQLAssistFileType.MODEL, GQLAssistFileType.INPUT, GQLAssistFileType.RESPONSE),
     getFilePatterns(GQLAssistFileType.ENUM),
+    getFilePatterns(GQLAssistFileType.SCALAR),
   )
   if (!location) {
     return null

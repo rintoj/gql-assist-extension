@@ -1,6 +1,5 @@
 import { sortSchema } from 'gql-assist'
 import * as vscode from 'vscode'
-import { updateDocument } from './common/update-document'
 
 async function executeSortSchemaCommand() {
   const document = vscode.window.activeTextEditor?.document
@@ -11,8 +10,20 @@ async function executeSortSchemaCommand() {
   if (!schema) {
     return
   }
-  const sortedSchema = sortSchema(schema)
-  await updateDocument(document, sortedSchema)
+  const code = sortSchema(schema)
+  if (schema === code) {
+    return
+  }
+  await vscode.window.activeTextEditor?.edit(builder => {
+    const doc = vscode.window.activeTextEditor?.document
+    if (!doc) {
+      return
+    }
+    builder.replace(
+      new vscode.Range(doc.lineAt(0).range.start, doc.lineAt(doc.lineCount - 1).range.end),
+      code,
+    )
+  })
 }
 
 export function configureSortSchemaCommand(context: vscode.ExtensionContext) {

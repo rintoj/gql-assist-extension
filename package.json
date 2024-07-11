@@ -88,7 +88,7 @@
       {
         "command": "gql-assist.sort.schema",
         "category": "GraphQL Assist",
-        "title": "Sort GraphQL Schema Lexicographically"
+        "title": "Sort Schema Lexicographically"
       }
     ],
     "completionProvider": {
@@ -254,6 +254,30 @@
             },
             "markdownDescription": "For the extension to process enums on save, they should be placed in a file with the extension as per the file extension configuration.",
             "description": "Enum file extensions.",
+            "order": 2
+          }
+        }
+      },
+      {
+        "title": "Scalar Generation",
+        "properties": {
+          "gqlAssist.scalar.enable": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "On Save, automatically convert TypeScript scalars to GraphQL scalars and registers them.",
+            "description": "Enable scalar generation.",
+            "order": 1
+          },
+          "gqlAssist.scalar.fileExtensions": {
+            "type": "array",
+            "default": [
+              ".scalar.ts"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "markdownDescription": "For the extension to process scalars on save, they should be placed in a file with the extension as per the file extension configuration.",
+            "description": "Scalar file extensions.",
             "order": 2
           }
         }

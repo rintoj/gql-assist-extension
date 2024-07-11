@@ -41,6 +41,10 @@ function readGqlAssistConfiguration(): GQLAssistExtensionConfig {
       enable: extensionConfig.get<boolean>('response.enable', true),
       fileExtensions: extensionConfig.get<string[]>('response.fileExtensions', ['.response.ts']),
     },
+    scalar: {
+      enable: extensionConfig.get<boolean>('scalar.enable', true),
+      fileExtensions: extensionConfig.get<string[]>('scalar.fileExtensions', ['.scalar.ts']),
+    },
     enum: {
       enable: extensionConfig.get<boolean>('enum.enable', true),
       fileExtensions: extensionConfig.get<string[]>('enum.fileExtensions', [

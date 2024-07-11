@@ -84,6 +84,11 @@
         "command": "gql-assist.choose.schema",
         "category": "GraphQL Assist",
         "title": "Choose Schema"
+      },
+      {
+        "command": "gql-assist.sort.schema",
+        "category": "GraphQL Assist",
+        "title": "Sort GraphQL Schema Lexicographically"
       }
     ],
     "completionProvider": {

@@ -84,6 +84,11 @@
         "command": "gql-assist.choose.schema",
         "category": "GraphQL Assist",
         "title": "Choose Schema"
+      },
+      {
+        "command": "gql-assist.sort.schema",
+        "category": "GraphQL Assist",
+        "title": "Sort Schema Lexicographically"
       }
     ],
     "completionProvider": {
@@ -254,6 +259,30 @@
         }
       },
       {
+        "title": "Scalar Generation",
+        "properties": {
+          "gqlAssist.scalar.enable": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "On Save, automatically convert TypeScript scalars to GraphQL scalars and registers them.",
+            "description": "Enable scalar generation.",
+            "order": 1
+          },
+          "gqlAssist.scalar.fileExtensions": {
+            "type": "array",
+            "default": [
+              ".scalar.ts"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "markdownDescription": "For the extension to process scalars on save, they should be placed in a file with the extension as per the file extension configuration.",
+            "description": "Scalar file extensions.",
+            "order": 2
+          }
+        }
+      },
+      {
         "title": "React Hook Generation",
         "properties": {
           "gqlAssist.reactHook.enable": {
@@ -333,7 +362,7 @@
   },
   "dependencies": {
     "fast-glob": "^3.3.2",
-    "gql-assist": "^1.8.2",
+    "gql-assist": "^1.8.3",
     "graphql": "^16.8.2",
     "prettier": "^3.3.2",
     "tsds-tools": "^1.2.1"

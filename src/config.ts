@@ -29,6 +29,9 @@ function readGqlAssistConfiguration(): GQLAssistExtensionConfig {
       enable: extensionConfig.get<boolean>('model.enable', true),
       fileExtensions: extensionConfig.get<string[]>('model.fileExtensions', ['.model.ts']),
     },
+    entity: {
+      enable: extensionConfig.get<boolean>('entity.enable', true),
+    },
     resolver: {
       enable: extensionConfig.get<boolean>('resolver.enable', true),
       fileExtensions: extensionConfig.get<string[]>('resolver.fileExtensions', ['.resolver.ts']),

@@ -160,6 +160,18 @@
         }
       },
       {
+        "title": "TypeORM Entity Generation",
+        "properties": {
+          "gqlAssist.entity.enable": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "On save, automatically generates TypeORM decorators for entity classes.",
+            "description": "Enable TypeORM entity generation.",
+            "order": 1
+          }
+        }
+      },
+      {
         "title": "Resolver Generation",
         "properties": {
           "gqlAssist.resolver.enable": {
